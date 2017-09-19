@@ -1,17 +1,16 @@
 import pytest
 from universe import *
-
+from rules import *
 
 def test_move():
     original_life = 4
     actions = 2
     position = [1,2]
     direction = [1,1]
+    new_position = [position[0]+np.sqrt(2),position[1]+np.sqrt(2)]
 
     agent = Agent(original_life,np.array(position),actions)
     agent.move(np.array(direction),Rules.movement_cost)
-
-    new_position = direction / np.linalg.norm(direction) * actions
 
     assert np.all(agent.position == np.array(new_position))
     assert agent.hp < original_life

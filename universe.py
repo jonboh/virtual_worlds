@@ -6,12 +6,12 @@ from agent import *
 
 
 class Universe:
-    def __init__(self, num_dim, num_agents, num_food):
+    def __init__(self, num_dims, rules, agents, foods):
         self.t = 0
-        self.num_dim = num_dim
-        self.agents = [Agent(np.random.rand(1),np.random.rand(num_dim),np.random.rand(1)*0.01) for i in range(0,num_agents)]
-        self.foods = [Matter(np.random.rand(1),np.random.rand(num_food)) for i in range(0,num_food)]
-        self.physics = Rules
+        self.num_dim = num_dims
+        self.physics = rules
+        self.agents = agents
+        self.foods = foods
 
 
     def pass_time(self):
@@ -37,12 +37,5 @@ class Universe:
         # food_collection =  plt.scatter(food_positions_hp[:,0],food_positions_hp[:,1],
         #                                s=food_positions_hp[:,2], color='red')
         return agent_positions_hp, food_positions_hp
-
-
-class Rules:
-    @staticmethod
-    def movement_cost(position, new_position, mass):
-        energy_cost = np.linalg.norm(position-new_position)*mass*0.1
-        return energy_cost
 
 

@@ -27,7 +27,7 @@ class Agent(Matter):
         self.move(movement_direction, world.physics.movement_cost)
 
     def move(self, direction, movement_rule):
-        new_position = direction / np.linalg.norm(direction) * self.actions
+        new_position = self.position + direction / np.linalg.norm(direction) * self.actions
         cost = movement_rule(self.position, new_position, self.mass)
         self.hp = np.max([self.hp - cost,0])
         self.position = new_position

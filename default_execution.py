@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from universe import *
+from rules import *
 from threading import Thread
 from time import sleep
 import tkinter as tk
@@ -12,9 +13,6 @@ class universe_window:
         self.universe = universe
         uni_fig = plt.figure()
         self.ax = uni_fig.add_subplot(111)
-
-
-
 
         # Config window
         self.parent = parent
@@ -39,7 +37,6 @@ class universe_window:
         # time_button.grid(row=0,column=0,sticky=tk.N)
         self.label_t = tk.Label(frame_info_time,text='t = 0')
         self.label_t.grid(row=0,column=1,sticky=tk.W+tk.N)
-
 
         last_loop_thread = Thread(target=self.last_loop,name='Last Loop')
         last_loop_thread.start()
@@ -68,14 +65,16 @@ class universe_window:
         self.label_t.configure(text='t = ' + str(universe.t))
 
 
-
 if __name__ == '__main__':
     num_agents = 7
     num_foods = 25
     num_dims = 2
-
-    np.random.seed(1)
-    universe = Universe(num_dims, num_agents, num_foods)
+    np.random.seed(2)
+    rules = Rules
+    agents = [Agent(np.random.rand(1),np.random.rand(num_dims),np.random.rand(1)*0.01)
+              for i in range(0,num_agents)]
+    foods = [Matter(np.random.rand(1),np.random.rand(num_foods)) for i in range(0,num_foods)]
+    universe = Universe(num_dims, rules, agents, foods)
 
     root = tk.Tk()
     visualizer = universe_window(root, universe)
