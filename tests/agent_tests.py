@@ -2,6 +2,7 @@ import pytest
 from universe import *
 from rules import *
 
+
 def test_move():
     original_life = 4
     actions = 2
@@ -29,22 +30,22 @@ def test_move_death():
 
 
 def test_eat_bigfood(): # food.hp is greater than agent action points
-    food_hp = 10
+    food_energy = 10
     agent_hp = 10
     ac_points = 1
-    food = Matter(food_hp,np.array([1,2]))
+    food = Matter(food_energy,np.array([1,2]))
     agent = Agent(agent_hp,np.array([1,2]),ac_points)
     agent.eat(food)
     assert agent.hp == agent_hp + ac_points
-    assert food.hp == food_hp - ac_points
+    assert food.energy == food_energy - ac_points
 
 
 def test_eat_smallfood(): # food.hp is less than agent action points
-    food_hp = 3
+    food_energy = 3
     agent_hp = 10
     ac_points = 5
-    food = Matter(food_hp, np.array([1, 2]))
+    food = Matter(food_energy, np.array([1, 2]))
     agent = Agent(agent_hp, np.array([1, 2]), ac_points)
     agent.eat(food)
-    assert agent.hp == agent_hp + food_hp
-    assert food.hp == 0
+    assert agent.hp == agent_hp + food_energy
+    assert food.energy == 0

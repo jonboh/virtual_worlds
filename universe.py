@@ -12,15 +12,25 @@ class Universe:
         self.physics = rules
         self.agents = agents
         self.foods = foods
-        self.gen_status_list()
+        # Generate internal state
+        self.gen_object_dict()
+
+    def initialize_world_state(self):
+        self.object_dict = {}
+        self.agent_charact = np.ones((len(self.agents), self.num_dim + 2)) * np.nan
+        self.food_charact = np.ones((len(self.foods), self.num_dim + 2)) * np.nan
 
     def retrieve_info(self, position, radius):
-        info_array = np.concatenate((self.agent_positions_hp,self.food_positions_hp),axis=0)
-        indexes_logic = radius < np.sqrt(
-            np.sum((info_array[:,0:len(position)]-position)**2
-                   ,axis=1,keepdims=True)) # Multi-dim Spherical check
-        info_array = np.delete(info_array,np.where(indexes_logic),axis=0)
+        info_array = np.concatenate((self.agent_charact,self.food_charact),axis=0)
+        norms = np.linalg.norm(info_array[:,0:len(position)]-position,axis=1,keepdims=True)
+        indexes_logic = np.logical_or(radius < norms, norms == 0) # Multi-dim Spherical check
+        indexes_logic = indexes_logic.reshape((indexes_logic.size,))
+        info_array = info_array[np.logical_not(indexes_logic),:]
         return info_array
+
+    def retrieve_obj_byid(self,id):
+        obj = self.object_dict[id]
+        return obj
 
     def pass_time(self):
         for agent in self.agents:
@@ -28,17 +38,49 @@ class Universe:
         self.t = self.t + 1
         self.gen_status_list()
 
+    def gen_object_dict(self):
+        self.initialize_world_state()
+        id = 0
+        for element in self.agents:
+            self.object_dict[id] = element
+            id += 1
+        for element in self.foods:
+            self.object_dict[id] = element
+            id += 1
+        self.gen_status_list()
 
     def gen_status_list(self):
-        self.agent_positions_hp = np.ones((len(self.agents),3))*np.nan
-        self.food_positions_hp = np.ones((len(self.foods),3))*np.nan
-        for i in range(0,len(self.agents)):
-            self.agent_positions_hp[i,0] = self.agents[i].position[0]
-            self.agent_positions_hp[i,1] = self.agents[i].position[1]
-            self.agent_positions_hp[i,2] = self.agents[i].hp
-        for i in range(0,len(self.foods)):
-            self.food_positions_hp[i,0] = self.foods[i].position[0]
-            self.food_positions_hp[i,1] = self.foods[i].position[1]
-            self.food_positions_hp[i,2] = self.foods[i].hp
+        ind_agent = 0
+        ind_food = 0
+        list_of_death = []
+        list_of_unexistance = []
+        for entry in self.object_dict:
+            if type(self.object_dict[entry]) is Agent:
+                if self.object_dict[entry].hp>0:
+                    self.agent_charact[ind_agent, 0] = self.object_dict[entry].position[0]
+                    self.agent_charact[ind_agent, 1] = self.object_dict[entry].position[1]
+                    self.agent_charact[ind_agent, 2] = self.object_dict[entry].hp
+                    self.agent_charact[ind_agent, 3] = entry
+                    ind_agent += 1
+                else: # This element is dead, no longer exists
+                    list_of_death.append(entry)
 
-
+            elif type(self.object_dict[entry]) is Matter:
+                if self.object_dict[entry].energy > 0:
+                    self.food_charact[ind_food, 0] = self.object_dict[entry].position[0]
+                    self.food_charact[ind_food, 1] = self.object_dict[entry].position[1]
+                    self.food_charact[ind_food, 2] = self.object_dict[entry].energy
+                    self.food_charact[ind_food, 3] = entry
+                    ind_food += 1
+                else: # This element is dead, no longer exists
+                    list_of_unexistance.append(entry)
+        for entry in list_of_death:
+            agent_dead = self.object_dict.pop(entry)
+            self.agents.remove(agent_dead)
+            new_food = Matter(agent_dead.energy,agent_dead.position)
+            self.foods.append(new_food)
+        for entry in list_of_unexistance:
+            food_disapear = self.object_dict.pop(entry)
+            self.foods.remove(food_disapear)
+        if len(list_of_death)>0 or len(list_of_unexistance)>0:
+            self.gen_object_dict()

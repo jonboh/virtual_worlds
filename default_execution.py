@@ -8,7 +8,8 @@ import tkinter as tk
 
 
 class universe_window:
-    def __init__(self,parent,universe):
+    def __init__(self,parent,universe,plot_frecuency):
+        self.plot_frecuency = plot_frecuency
         #
         self.universe = universe
         uni_fig = plt.figure()
@@ -43,19 +44,21 @@ class universe_window:
 
     def last_loop(self):
         while True:
-            if universe.t % 50 == 0:
+            if universe.t % self.plot_frecuency == 0:
                 self.update_window()
             else:
                 self.update_universe()
 
     def update_window(self):
         self.ax.clear()
-        self.ax.set_xlim([0,1])
-        self.ax.set_ylim([0,1])
-        agent_collection = universe.agent_positions_hp
-        food_collection = universe.food_positions_hp
+        self.ax.set_xlim([-2,2])
+        self.ax.set_ylim([-2,2])
+        agent_collection = universe.agent_charact
+        food_collection = universe.food_charact
         self.ax.scatter(agent_collection[:,0],agent_collection[:,1],s=agent_collection[:,2]*10,
                         color='blue')
+        for agent_charact in agent_collection:
+            self.ax.annotate(agent_charact[-1],(agent_charact[0],agent_charact[1]))
         self.ax.scatter(food_collection[:, 0], food_collection[:, 1], s=food_collection[:, 2]*10,
                         color='red')
         self.universe_canvas.draw()
@@ -67,16 +70,18 @@ class universe_window:
 
 
 if __name__ == '__main__':
-    num_agents = 7
-    num_foods = 25
+    plot_frecuency = 5
+
+    num_agents = 50
+    num_foods = 100
     num_dims = 2
     np.random.seed(2)
     rules = Rules
-    agents = [Agent(np.random.rand(1),np.random.rand(num_dims),np.random.rand(1)*0.01)
+    agents = [Agent(np.random.rand(1),np.random.randn(num_dims),np.random.rand(1)*0.1)
               for i in range(0,num_agents)]
     foods = [Matter(np.random.rand(1),np.random.rand(num_foods)) for i in range(0,num_foods)]
     universe = Universe(num_dims, rules, agents, foods)
 
     root = tk.Tk()
-    visualizer = universe_window(root, universe)
+    visualizer = universe_window(root, universe, plot_frecuency)
     root.mainloop()
