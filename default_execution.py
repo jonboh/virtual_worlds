@@ -52,7 +52,8 @@ class universe_window:
         self.ax.clear()
         self.ax.set_xlim([0,1])
         self.ax.set_ylim([0,1])
-        agent_collection, food_collection = universe.gen_collections()
+        agent_collection = universe.agent_positions_hp
+        food_collection = universe.food_positions_hp
         self.ax.scatter(agent_collection[:,0],agent_collection[:,1],s=agent_collection[:,2]*10,
                         color='blue')
         self.ax.scatter(food_collection[:, 0], food_collection[:, 1], s=food_collection[:, 2]*10,

@@ -12,30 +12,33 @@ class Universe:
         self.physics = rules
         self.agents = agents
         self.foods = foods
+        self.gen_status_list()
 
+    def retrieve_info(self, position, radius):
+        info_array = np.concatenate((self.agent_positions_hp,self.food_positions_hp),axis=0)
+        indexes_logic = radius < np.sqrt(
+            np.sum((info_array[:,0:len(position)]-position)**2
+                   ,axis=1,keepdims=True)) # Multi-dim Spherical check
+        info_array = np.delete(info_array,np.where(indexes_logic),axis=0)
+        return info_array
 
     def pass_time(self):
         for agent in self.agents:
             agent.live(self)
         self.t = self.t + 1
+        self.gen_status_list()
 
 
-    def gen_collections(self):
-        agent_positions_hp = np.ones((len(self.agents),3))*np.nan
-        food_positions_hp = np.ones((len(self.foods),3))*np.nan
+    def gen_status_list(self):
+        self.agent_positions_hp = np.ones((len(self.agents),3))*np.nan
+        self.food_positions_hp = np.ones((len(self.foods),3))*np.nan
         for i in range(0,len(self.agents)):
-            agent_positions_hp[i,0] = self.agents[i].position[0]
-            agent_positions_hp[i,1] = self.agents[i].position[1]
-            agent_positions_hp[i,2] = self.agents[i].hp
+            self.agent_positions_hp[i,0] = self.agents[i].position[0]
+            self.agent_positions_hp[i,1] = self.agents[i].position[1]
+            self.agent_positions_hp[i,2] = self.agents[i].hp
         for i in range(0,len(self.foods)):
-            food_positions_hp[i,0] = self.foods[i].position[0]
-            food_positions_hp[i,1] = self.foods[i].position[1]
-            food_positions_hp[i,2] = self.foods[i].hp
-
-        # agent_collection = plt.scatter(agent_positions_hp[:,0],agent_positions_hp[:,1],
-        #                                s=agent_positions_hp[:,2],color='blue')
-        # food_collection =  plt.scatter(food_positions_hp[:,0],food_positions_hp[:,1],
-        #                                s=food_positions_hp[:,2], color='red')
-        return agent_positions_hp, food_positions_hp
+            self.food_positions_hp[i,0] = self.foods[i].position[0]
+            self.food_positions_hp[i,1] = self.foods[i].position[1]
+            self.food_positions_hp[i,2] = self.foods[i].hp
 
 
