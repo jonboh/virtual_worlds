@@ -23,15 +23,16 @@ class Agent(Matter):
         percepted_world = self.percept_world(world)
         self.plan(percepted_world)
 
-        movement_behaviour = np.random.randn(world.num_dim) * self.actions
-        self.move(self.position+movement_behaviour, world.physics.movement_cost)
+        movement_direction = np.random.randn(world.num_dim)
+        self.move(movement_direction, world.physics.movement_cost)
 
-    def move(self, new_position, movement_rule):
+    def move(self, direction, movement_rule):
+        new_position = direction / np.linalg.norm(direction) * self.actions
         cost = movement_rule(self.position, new_position, self.mass)
-        self.hp = max([self.hp - cost,0])
+        self.hp = np.max([self.hp - cost,0])
         self.position = new_position
 
     def eat(self, food):
 
-        self.hp = self.hp + food.hp
-        food.hp = food.hp - self.actions
+        self.hp = np.min([self.hp+self.actions,self.hp + food.hp])
+        food.hp = np.max([food.hp - self.actions,0])
