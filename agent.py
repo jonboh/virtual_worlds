@@ -14,7 +14,7 @@ class Agent(Matter):
         self.hp = life
         self.actions = actions
         self.eat_actions = actions * 10
-        self.perception_reach = self.actions * 5000 # Might change in the future
+        self.perception_reach = self.actions * 50 # Might change in the future
         self.reach = self.actions * 0.05
 
     def percept_world(self, world):
@@ -42,17 +42,13 @@ class Agent(Matter):
                 movement_range = np.min([self.actions,np.linalg.norm(movement_path,keepdims=True)])
                 funct_list = [self.move]
                 arg_list = [(movement_path, movement_range, world.physics.movement_cost)]
-
         return funct_list, arg_list
 
     def plan(self,world):
-
         funct_list, arg_list = self.closest_logic(world)
-
         return funct_list, arg_list
 
     def live(self,world):
-
         actions_list, args_list = self.plan(world)
         [funct(*args) for funct,args in zip(actions_list,args_list)]
 
@@ -72,4 +68,5 @@ class Agent(Matter):
             food.hp = np.max([food.hp - self.eat_actions, 0])
         else:
             self.hp = np.min([self.hp+self.eat_actions,self.hp + food.energy])
+            self.energy = np.min([self.energy+self.eat_actions,self.energy + food.energy])
             food.energy = np.max([food.energy - self.eat_actions,0])
