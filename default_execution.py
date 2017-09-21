@@ -130,7 +130,7 @@ class universe_window:
 
 
 if __name__ == '__main__':
-    plot_frecuency = 5
+    plot_frecuency = 1
     field_value = 5
 
     num_agents = 50
@@ -138,7 +138,7 @@ if __name__ == '__main__':
     num_dims = 2
     np.random.seed(2)
     rules = Rules
-    agents = [Agent(np.random.rand(1),np.random.randn(num_dims)*field_value,np.random.rand(1)*0.1)
+    agents = [Agent(np.random.rand(1),np.random.randn(num_dims)*field_value,np.random.rand(1)*0.5)
               for i in range(0,num_agents)]
     foods = [Matter(np.random.rand(1),np.random.randn(num_dims)*field_value) for i in range(0,num_foods)]
     universe = Universe(num_dims, rules, agents, foods)
