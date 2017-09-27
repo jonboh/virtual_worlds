@@ -14,5 +14,5 @@ class Rules:
     @staticmethod
     def computation_cost(time):  # operations or time
         """Penalize excessive computation by agents"""
-        computation_cost = 0
+        computation_cost = time
         return computation_cost

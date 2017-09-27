@@ -1,24 +1,21 @@
 import pickle
+import multiprocessing as mulp
 import time
 
-from agent import *
-from rules import *
-from universe import *
+import numpy as np
+
+from agent import Matter, Agent, random_foods, random_agents
+from universe import UniverseWorker, Universe
 
 
 # UniverseWorker Class
 def universe_worker_init():
-    universe_worker = UniverseWorker(universe=universe_creation_random())
+    universe_worker = UniverseWorker(universe_creation_random(), 1)
     return universe_worker
 
 
 def test_universe_worker_init():
-    UniverseWorker(universe=universe_creation_random())
-
-
-def test_create_workers():
-    universe_worker = UniverseWorker(universe=universe_creation_random())
-    universe_worker.create_workers(1)
+    UniverseWorker(universe_creation_random(), 1)
 
 
 # def test_universe_worker_start_stop_trigger(): NOT WORKING
@@ -36,21 +33,25 @@ def test_create_workers():
 
 
 def test_universe_worker_run():
-    universe_worker = UniverseWorker(universe=universe_creation_random())
-    universe_worker.create_workers(1)
-    universe_worker.run()
+    num_cycles = 5
+    universe = universe_creation_random()
+    universe_worker = UniverseWorker(universe, 7)
+    universe_worker.create_workers()
+    universe_worker.start_workers()
+    for _ in range(0, num_cycles):
+        universe_worker.run()
+    universe_worker.stop_workers()
+    assert universe.t == num_cycles
 
 
 # Universe Class
 def universe_creation_random():
     np.random.seed(1)
-    num_agents = 35
-    num_foods = 200
-    num_dims = 2
+    num_agents = 1
+    num_foods = 0
     np.random.seed(2)
-    agents = [Agent(np.random.rand(1), np.random.rand(num_dims), np.random.rand(1) * 0.01)
-              for _ in range(0, num_agents)]
-    foods = [Matter(np.random.rand(1), np.random.rand(num_dims)) for _ in range(0, num_foods)]
+    agents = random_agents(num_agents)
+    foods = random_foods(num_foods)
     universe = Universe(agents, foods)
     return universe
 

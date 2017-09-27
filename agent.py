@@ -16,6 +16,7 @@ class AgentWorker(mulp.Process):
                 info = self.pipe.recv()
             except EOFError:
                 continue
+
             actions = []  # this will be a list of tuples
             for state_list in info:
                 world_state = state_list[0]
@@ -107,3 +108,15 @@ class Agent(Matter):
             self.hp = np.min([self.hp+self.actions_eat, self.hp + food.energy])
             self.energy = np.min([self.energy+self.actions_eat, self.energy + food.energy])
             food.energy = np.max([food.energy - self.actions_eat, 0])
+
+
+def random_foods(num_foods, position_param=1):
+    rand_foods = [Matter(life=np.random.rand(1), position=np.random.randn(Rules.dim) * position_param)
+                  for _ in range(0, num_foods)]
+    return rand_foods
+
+
+def random_agents(num_agents, position_param=1):
+    rand_agents = [Agent(life=np.random.rand(1), position=np.random.randn(Rules.dim)*position_param,
+                         actions=np.random.rand(1)*0.1) for _ in range(0, num_agents)]
+    return rand_agents

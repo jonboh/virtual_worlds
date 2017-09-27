@@ -1,1 +1,3 @@
-{}
+{
+  "universe_tests.py::test_retrieve_info": true
+}

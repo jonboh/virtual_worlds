@@ -1,21 +1,20 @@
 import multiprocessing as mulp
-import time
 
 from rules import *
 import agent
 
 
 class UniverseWorker(mulp.Process):
-    def __init__(self, universe, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.name = 'Universe Worker'
-        self.stop_trigger = 0
+    def __init__(self, universe, amount_workers, *args, **kwargs):
+        super().__init__(*args, **kwargs, name='Universe Worker')
         self.universe = universe
+        self.computing = 0
+        self.amount_workers = amount_workers
         self.workers = []
         self.pipes = []
 
-    def create_workers(self, amount_workers):
-        for i in range(0, amount_workers):
+    def create_workers(self):
+        for i in range(0, self.amount_workers):
             parent_pipe, child_pipe = mulp.Pipe()
             self.pipes.append(parent_pipe)
             worker = agent.AgentWorker(pipe=child_pipe, name='AgentWorker_'+str(i))
@@ -27,40 +26,37 @@ class UniverseWorker(mulp.Process):
 
     def stop_workers(self):
         for worker in self.workers:
-            worker.stop_trigger = 1
-
+            worker.terminate()  # dirty job...
 
     def assign_agents_pipes(self):
         pipe_agents = [list() for _ in self.pipes]
         ind = 0
         for i in range(0, len(self.universe.agents)):
             pipe_agents[ind].append(self.universe.agents[i])
-            ind+=1
-            if ind>=len(self.workers):
+            ind += 1
+            if ind >= len(self.workers):
                 ind = 0
         return pipe_agents
 
     def run(self):
-        self.start_workers()
-        while not self.stop_trigger:
+        self.computing = 1
+        # Assign agents to pipes
+        pipe_agents = self.assign_agents_pipes()
+        # Send info to workers
+        for pipe, agents in zip(self.pipes, pipe_agents):
+            info = []
+            for agent_ in agents:
+                info.append(tuple([agent_.percept_world(self.universe), agent_.__dict__]))
+            pipe.send(info)
 
-            # Assign agents to pipes
-            pipe_agents = self.assign_agents_pipes()
-            # Send info to workers
-            for pipe, agents in zip(self.pipes, pipe_agents):
-                info = []
-                for agent_ in agents:
-                    info.append(tuple([agent_.percept_world(self.universe), agent_.__dict__]))
-                pipe.send(info)
+        # Receive info from workers
+        action_package = []
+        for pipe in self.pipes:
+            action_package = action_package + pipe.recv()  # concatenate
 
-            # Receive info from workers
-            action_package = []
-            for pipe in self.pipes:
-                action_package = action_package + pipe.recv()  # concatenate
-
-            # Compute new world state with actions from the agents
-            self.universe.update_state(action_package)
-        self.stop_workers()
+        # Compute new world state with actions from the agents
+        self.universe.update_state(action_package)
+        self.computing = 0
 
 
 class Universe:
@@ -85,7 +81,6 @@ class Universe:
             elif isinstance(self.__dict__[entry], (int, float, complex)):
                 info_dict[entry] = self.__dict__[entry]
 
-
         return info_dict  # it returns a dict with all info objects in radius
 
     def retrieve_byid(self, id_):
@@ -96,10 +91,12 @@ class Universe:
             if food_.id == id_:
                 return food_
 
-    def update_state(self, action_package):
+    def update_state(self, action_package, new_agents=None, new_foods=None):
         self.t = self.t + 1
-        if self.t % 100 == 0:
-            print(self.t)
+        new_agents = [] if new_agents is None else new_agents
+        new_foods = [] if new_foods is None else new_foods
+        self.agents = self.agents + new_agents
+        self.foods = self.foods + new_foods
         # fun_codes -> List of all action to be done in this "turn":
         # 0-> Nothing
         # 1-> Move
